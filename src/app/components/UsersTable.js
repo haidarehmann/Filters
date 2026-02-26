@@ -49,67 +49,50 @@ export default function UsersTable({ users, onOpenFilter, onOpenColumns }) {
   }, []);
 
   const filteredUsers = useMemo(() => {
-    return users.filter((user) => {
-      return filters.every((f) => {
-        const fieldValue = user[f.key]
-          ? user[f.key].toString().toLowerCase().trim()
-          : "";
+  return users.filter((user) => {
+    return filters.every((f) => {
+      let filterValue = f.value.trim().toLowerCase();
 
-        const filterValue = f.value.toLowerCase().trim();
-
-        switch (f.operator) {
-          case "contains":
-
-            if (!f.value) return true;
-
-            if (f.key === "date_created") {
-              const userDate = new Name(user[f.key])
-                .toISOString()
-                .split("T")[0];
-
-              return userName === f.value;
-            }
-
-            return (
-              user[f.key]?.toString().toLowerCase().trim() ===
-              f.value.toString().toLowerCase().trim()
-            );
-
-
-          case "equals":
-            if (!f.value) return true;
-
-            if (f.key === "date_created") {
-              const userDate = new Date(user[f.key])
-                .toISOString()
-                .split("T")[0];
-
-              return userDate === f.value;
-            }
-
-            return (
-              user[f.key]?.toString().toLowerCase().trim() ===
-              f.value.toString().toLowerCase().trim()
-            );
-
-          case "startsWith":
-            return fieldValue.startsWith(filterValue);
-
-          case "endsWith":
-            return fieldValue.endsWith(filterValue);
-
-          case "isEmpty":
-            return fieldValue === "";
-
-          case "isNotEmpty":
-            return fieldValue !== "";
-
-          default:
-            return true;
+      let fieldValue = user[f.key];
+      
+      // Date normalization
+      if (f.key === "date_created" && fieldValue) {
+        const userDate = new Date(fieldValue);
+        if (!isNaN(userDate)) {
+          fieldValue = userDate.toISOString().split("T")[0]; // YYYY-MM-DD
+        } else {
+          fieldValue = "";
         }
-      });
+        filterValue = filterValue; // keep as typed by user
+      } else {
+        fieldValue = fieldValue ? fieldValue.toString().toLowerCase().trim() : "";
+      }
+
+      switch (f.operator) {
+        case "contains":
+          return fieldValue.includes(filterValue);
+
+        case "equals":
+         fieldValue = fieldValue ? fieldValue.toString().toLowerCase().trim() : "";
+
+        case "startsWith":
+          return fieldValue.startsWith(filterValue);
+
+        case "endsWith":
+          return fieldValue.endsWith(filterValue);
+
+        case "isEmpty":
+          return fieldValue === "";
+
+        case "isNotEmpty":
+          return fieldValue !== "";
+
+        default:
+          return true;
+      }
     });
-  }, [users, filters]);
+  });
+}, [users, filters]);
 
   const sortedUsers = useMemo(() => {
     if (!filteredUsers) return [];
@@ -132,9 +115,6 @@ export default function UsersTable({ users, onOpenFilter, onOpenColumns }) {
     }
   };
 
-  const isOperatorUsed = (operator, currentIndex) => {
-    return filters.some((item, index) => index !== currentIndex && item.operator === operator);
-  };
 
   const columns = [
     { key: "practice_name", label: "Name" },
@@ -148,6 +128,12 @@ export default function UsersTable({ users, onOpenFilter, onOpenColumns }) {
     return filters.some(
       (item, index) =>
         index !== currentIndex && item.key === columnKey
+    );
+  };
+
+  const isOperatorUsed = (operator, currentIndex) => {
+    return filters.some(
+      (item, index) => index !== currentIndex && item.operator === operator
     );
   };
   return (
@@ -214,7 +200,12 @@ export default function UsersTable({ users, onOpenFilter, onOpenColumns }) {
                   setFilters(newFilters);
                 }}
               >
-                <option value="contains" disabled={isOperatorUsed("contains", idx)}>contains</option>
+                <option
+                  value="contains"
+                  disabled={isOperatorUsed("contains", idx)}
+                >
+                  contains
+                </option>
                 <option value="equals" disabled={isOperatorUsed("equals", idx)}>equals</option>
                 <option value="startsWith" disabled={isOperatorUsed("startsWith", idx)}>starts with</option>
                 <option value="endsWith" disabled={isOperatorUsed("endsWith", idx)}>ends with</option>
