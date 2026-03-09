@@ -2,7 +2,7 @@
   border-collapse: collapse;
   margin-top: 20px;
   margin: 0 auto;
-  width: auto;
+  width: 100%;
   margin: 0 auto;
   font-family: Arial, sans-serif;
   order-left: 1px solid rgba(255, 255, 255, 0.3);
@@ -166,23 +166,23 @@ th:nth-child(4) {
   margin-bottom: 10px;
 }
 .containerbar {
-  height: 300px;
-  overflow-y: auto;
-
+  height: 250px;
+  overflow-y: scroll;
+display: block;
   scrollbar-width: thin;
   scrollbar-color: #888 transparent;
 }
-.container::-webkit-scrollbar {
+.containerbar::-webkit-scroll {
   width: 20px; 
 }
-.container::-webkit-scrollbar-track {
+.containerbar::-webkit-scroll-track {
   background-color: transparent;
 }
-.container::-webkit-scrollbar-thumb {
+.containerbar::-webkit-scroll-thumb {
   background-color: #888;
   border-radius: 3px;
 
 }
-.container::-webkit-scrollbar-thumb:hover {
+.containerbar::-webkit-scroll-thumb:hover {
   background-color: #555;
 }

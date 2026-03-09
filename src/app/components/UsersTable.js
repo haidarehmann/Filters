@@ -36,63 +36,54 @@ export default function UsersTable({ users, onOpenFilter, onOpenColumns }) {
     setSortConfig({ key, direction: dir });
   };
 
-  const [visibleUsers, setVisibleUsers] = useState([]);
-  const [itemsToShow, setItemsToShow] = useState(20);
+  const [itemsToShow, setItemsToShow] = useState(5);
+  const [isLoading, setIsLoading] = useState(false); // ✅ FIX 1: loading state
 
-
-  useEffect(() => {
-    const container = tableContainerRef.current;
-    if (!container) return;
-
-    container.addEventListener("scroll", handleScroll);
-    return () => container.removeEventListener("scroll", handleScroll);
-  }, []);
 
   const filteredUsers = useMemo(() => {
-  return users.filter((user) => {
-    return filters.every((f) => {
-      let filterValue = f.value.trim().toLowerCase();
+    return users.filter((user) => {
+      return filters.every((f) => {
+        let filterValue = f.value.trim().toLowerCase();
 
-      let fieldValue = user[f.key];
-      
-      // Date normalization
-      if (f.key === "date_created" && fieldValue) {
-        const userDate = new Date(fieldValue);
-        if (!isNaN(userDate)) {
-          fieldValue = userDate.toISOString().split("T")[0]; // YYYY-MM-DD
+        let fieldValue = user[f.key];
+
+        if (f.key === "date_created" && fieldValue) {
+          const userDate = new Date(fieldValue);
+          if (!isNaN(userDate)) {
+            fieldValue = userDate.toISOString().split("T")[0];
+          } else {
+            fieldValue = "";
+          }
+          filterValue = filterValue;
         } else {
-          fieldValue = "";
+          fieldValue = fieldValue ? fieldValue.toString().toLowerCase().trim() : "";
         }
-        filterValue = filterValue; // keep as typed by user
-      } else {
-        fieldValue = fieldValue ? fieldValue.toString().toLowerCase().trim() : "";
-      }
 
-      switch (f.operator) {
-        case "contains":
-          return fieldValue.includes(filterValue);
+        switch (f.operator) {
+          case "contains":
+            return fieldValue.includes(filterValue);
 
-        case "equals":
-         fieldValue = fieldValue ? fieldValue.toString().toLowerCase().trim() : "";
+          case "equals":
+            fieldValue = fieldValue ? fieldValue.toString().toLowerCase().trim() : "";
 
-        case "startsWith":
-          return fieldValue.startsWith(filterValue);
+          case "startsWith":
+            return fieldValue.startsWith(filterValue);
 
-        case "endsWith":
-          return fieldValue.endsWith(filterValue);
+          case "endsWith":
+            return fieldValue.endsWith(filterValue);
 
-        case "isEmpty":
-          return fieldValue === "";
+          case "isEmpty":
+            return fieldValue === "";
 
-        case "isNotEmpty":
-          return fieldValue !== "";
+          case "isNotEmpty":
+            return fieldValue !== "";
 
-        default:
-          return true;
-      }
+          default:
+            return true;
+        }
+      });
     });
-  });
-}, [users, filters]);
+  }, [users, filters]);
 
   const sortedUsers = useMemo(() => {
     if (!filteredUsers) return [];
@@ -105,13 +96,28 @@ export default function UsersTable({ users, onOpenFilter, onOpenColumns }) {
   }, [filteredUsers, sortConfig]);
 
   useEffect(() => {
-    setVisibleUsers(sortedUsers.slice(0, itemsToShow));
+    setItemsToShow(5);
+  }, [filteredUsers]);
+
+  // ✅ FIX 2: visibleUsers - pehle yeh missing tha, isliye rows nahi dikh rahi thi
+  const visibleUsers = useMemo(() => {
+    return sortedUsers.slice(0, itemsToShow);
   }, [sortedUsers, itemsToShow]);
 
+  // ✅ FIX 3: handleScroll mein isLoading check aur 5 second delay
   const handleScroll = () => {
-    const { scrollTop, scrollHeight, clientHeight } = tableContainerRef.current;
-    if (scrollTop + clientHeight >= scrollHeight - 10) {
-      setItemsToShow((prev) => prev + 20);
+    const container = tableContainerRef.current;
+    if (!container) return;
+
+    const { scrollTop, scrollHeight, clientHeight } = container;
+    const isBottom = scrollTop + clientHeight >= scrollHeight - 10;
+
+    if (isBottom && itemsToShow < sortedUsers.length && !isLoading) {
+      setIsLoading(true);
+      setTimeout(() => {
+        setItemsToShow((prev) => prev + 5);
+        setIsLoading(false);
+      }, 3000);
     }
   };
 
@@ -136,8 +142,8 @@ export default function UsersTable({ users, onOpenFilter, onOpenColumns }) {
       (item, index) => index !== currentIndex && item.operator === operator
     );
   };
-  return (
 
+  return (
     <div className={styles.box}>
       <div className={styles.filterWrapper}>
 
@@ -188,8 +194,6 @@ export default function UsersTable({ users, onOpenFilter, onOpenColumns }) {
                     {col.label}
                   </option>
                 ))}
-
-
               </select>
 
               <select
@@ -237,9 +241,11 @@ export default function UsersTable({ users, onOpenFilter, onOpenColumns }) {
           ))}
         </div>
       </div>
+
       <div
         className={styles.containerbar}
         ref={tableContainerRef}
+        onScroll={handleScroll}
       >
         <table className={styles.table}>
           <thead>
@@ -452,7 +458,7 @@ export default function UsersTable({ users, onOpenFilter, onOpenColumns }) {
           </thead>
 
           <tbody>
-            {sortedUsers.map((user, index) => (
+            {visibleUsers.map((user, index) => (
               <tr key={index}>
                 <td>{user.practice_name}</td>
                 <td>{user.patient_name}</td>
@@ -461,11 +467,42 @@ export default function UsersTable({ users, onOpenFilter, onOpenColumns }) {
                 <td>{user.status}</td>
               </tr>
             ))}
+
+            {/* ✅ 5 second loading spinner */}
+            {isLoading && (
+              <tr>
+                <td colSpan={5} style={{ textAlign: "center", padding: "12px" }}>
+                  <span style={{
+                    color: "rgba(255,255,255,0.6)",
+                    fontSize: "13px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: "8px"
+                  }}>
+                    <span style={{
+                      width: "14px",
+                      height: "14px",
+                      border: "2px solid rgba(255,255,255,0.2)",
+                      borderTop: "2px solid white",
+                      borderRadius: "50%",
+                      display: "inline-block",
+                      animation: "spin 0.8s linear infinite"
+                    }} />
+                    Loading...
+                  </span>
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>
+
+      <style>{`
+        @keyframes spin {
+          to { transform: rotate(360deg); }
+        }
+      `}</style>
     </div>
   );
 }
-
-
