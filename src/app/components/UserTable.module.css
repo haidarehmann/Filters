@@ -7,8 +7,6 @@
   font-family: Arial, sans-serif;
   order-left: 1px solid rgba(255, 255, 255, 0.3);
   border-right: 1px solid rgba(255, 255, 255, 0.3);
-
-
 }
 
 th:nth-child(1),
@@ -18,23 +16,19 @@ th:nth-child(4) {
   border-right: 1px solid rgba(255, 255, 255, 0.2);
 }
 
-
 .table th {
   color: white;
   padding: 6px 10px;
   text-align: left;
   font-size: 13px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.4);
-
 }
-
 
 .table td {
   padding: 6px 10px;
   color: white;
   font-size: 13px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.25);
-
 }
 
 .table tr {
@@ -88,12 +82,11 @@ th:nth-child(4) {
 .filterWrapper {
   display: flex;
   flex-direction: column;
-  align-items: center; 
+  align-items: center;
   gap: 10px;
   width: 100%;
-  position: relative; 
+  position: relative;
 }
-
 
 .btn {
   background-color: rgb(1, 99, 1);
@@ -107,11 +100,13 @@ th:nth-child(4) {
   gap: 6px;
   font-size: 12px;
 }
+
 .buttonRow {
   display: flex;
   gap: 10px;
   align-items: center;
 }
+
 .filtersContainer {
   display: flex;
   flex-direction: column;
@@ -127,6 +122,7 @@ th:nth-child(4) {
   z-index: 999;
   gap: 10px;
 }
+
 .filterRow {
   display: flex;
   flex-direction: row;
@@ -152,6 +148,7 @@ th:nth-child(4) {
   padding: 4px 8px;
   cursor: pointer;
 }
+
 .resetBtn {
   background-color: gray;
   color: white;
@@ -165,24 +162,30 @@ th:nth-child(4) {
   margin-top: 10px;
   margin-bottom: 10px;
 }
+
+/* ✅ FIX: height kam ki taake 5 rows mein scroll trigger ho */
 .containerbar {
-  height: 250px;
+  height: 175px;
   overflow-y: scroll;
-display: block;
+  display: block;
   scrollbar-width: thin;
   scrollbar-color: #888 transparent;
 }
-.containerbar::-webkit-scroll {
-  width: 20px; 
+
+/* ✅ FIX: -webkit-scroll → -webkit-scrollbar (yeh typo tha) */
+.containerbar::-webkit-scrollbar {
+  width: 6px;
 }
-.containerbar::-webkit-scroll-track {
+
+.containerbar::-webkit-scrollbar-track {
   background-color: transparent;
 }
-.containerbar::-webkit-scroll-thumb {
+
+.containerbar::-webkit-scrollbar-thumb {
   background-color: #888;
   border-radius: 3px;
-
 }
-.containerbar::-webkit-scroll-thumb:hover {
+
+.containerbar::-webkit-scrollbar-thumb:hover {
   background-color: #555;
 }
